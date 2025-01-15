@@ -3,8 +3,9 @@ from aiogram.filters import Command
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import asyncio
 
-API_TOKEN = ""  # Telegram-бот
-HF_AUTH_TOKEN = ""  # Hugging Face
+enviroment = open(".env")
+API_TOKEN = enviroment.readline()  # Telegram-бот
+HF_AUTH_TOKEN = enviroment.readline()  # Hugging Face
 
 model_name = "TheBloke/Llama-2-7B-Chat-GPTQ"
 tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=HF_AUTH_TOKEN)
@@ -54,4 +55,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    print(API_TOKEN, HF_AUTH_TOKEN)
+    # asyncio.run(main())
