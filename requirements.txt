@@ -1,4 +1,7 @@
-aiogram==3.0.0
-apscheduler==3.10.1
+aiogram==3.1.1
+langchain-gigachat==0.0.3
+langchain-core==0.0.208
 python-dotenv==1.0.0
 requests==2.31.0
+certifi==2023.7.22
+asyncio==3.4.3            
