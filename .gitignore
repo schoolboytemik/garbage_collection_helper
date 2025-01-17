@@ -2,3 +2,5 @@ venv
 .idea
 __pycache__
 .env
+/users.csv
+/logs.csv

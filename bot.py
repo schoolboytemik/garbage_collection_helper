@@ -7,6 +7,8 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
 import os
+from user_middleware import UserDBMiddleware
+from log_middleware import LoggingMiddleware
 
 # Импорт GigaChat (заменить на ваш модуль)
 from model import query_gigachat
@@ -18,6 +20,10 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 # Инициализация бота и диспетчера
 bot = Bot(token=TELEGRAM_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
+
+# Подключение Middleware
+dp.update.middleware(UserDBMiddleware(db_file="users.csv"))
+dp.update.middleware(LoggingMiddleware(log_file="logs.csv"))
 
 # Локальное временное хранилище данных
 USER_DATA = {}
