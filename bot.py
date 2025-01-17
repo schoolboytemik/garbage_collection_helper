@@ -22,6 +22,7 @@ dp = Dispatcher(storage=MemoryStorage())
 # Локальное временное хранилище данных
 USER_DATA = {}
 
+
 # FSM для регистраций и настройки напоминаний
 class ReminderStates(StatesGroup):
     waiting_for_name = State()
@@ -46,7 +47,7 @@ async def start_command(message: Message, state: FSMContext):
         return
 
     # Регистрация нового пользователя
-    await message.answer("Привет! Как я могу называть вас?")
+    await message.answer("Привет! Как я могу называть Вас?")
     await state.set_state(ReminderStates.waiting_for_name)
 
 
@@ -66,7 +67,7 @@ async def process_name(message: Message, state: FSMContext):
     }
 
     await message.answer(
-        f"Приятно познакомиться, {user_name}! Теперь вы можете управлять настройками через меню:",
+        f"Приятно познакомиться, {user_name}! Теперь Вы можете управлять настройками через меню:",
         reply_markup=get_main_menu(),
     )
     await state.clear()
@@ -80,7 +81,7 @@ async def show_menu(message: Message):
     """
     Главное меню.
     """
-    await message.answer("Вот ваше главное меню:", reply_markup=get_main_menu())
+    await message.answer("Вот Ваше главное меню:", reply_markup=get_main_menu())
 
 
 @dp.message(ReminderStates.waiting_for_time)
