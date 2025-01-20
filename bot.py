@@ -9,9 +9,7 @@ from dotenv import load_dotenv
 import os
 from user_middleware import UserDBMiddleware
 from log_middleware import LoggingMiddleware
-
-# Импорт GigaChat (заменить на ваш модуль)
-from model import query_gigachat
+from model import query_gigachat, analyze_message
 
 # Загрузка переменных окружения
 load_dotenv()
@@ -171,13 +169,16 @@ async def handle_messages(message: Message, state: FSMContext):
         return
 
     # Обновляем статистику, если сообщение связано с переработкой
-    updated = update_statistics(user_id, text)
+    resource = analyze_message(text)  # Вызов функции анализа текста (из gigachat_utils.py)
+    updated = update_statistics(user_id, resource)
     if updated:
-        stats = USER_DATA[user_id]["statistics"]
-        stats_message = "\n".join(f"✅ {key}: {value}" for key, value in stats.items())
-        await message.answer(f"✅ Статистика обновлена:\n{stats_message}")
+        try:
+            stats_message = get_user_statistics(user_id)
+            await message.answer(f"✅ Статистика обновлена:\n{stats_message}")
+        except Exception as error:
+            print(f"Ошибка при работе с GigaChat: {error}")
+            await message.answer("⚠️ Ошибка связи с GigaChat. Попробуйте позже.")
 
-    # И отправляем запрос в GigaChat
     try:
         response = query_gigachat(text)
         await message.answer(response)
@@ -215,20 +216,24 @@ def validate_time_format(time_str):
         return False
 
 
-def update_statistics(user_id: int, text: str) -> bool:
-    """
-    Обновляем статистику пользователя по ключевым словам.
-    """
-    if "пластик" in text:
-        USER_DATA[user_id]["statistics"]["пластик"] += 1
-        return True
-    elif "стекло" in text:
-        USER_DATA[user_id]["statistics"]["стекло"] += 1
-        return True
-    elif "металл" in text:
-        USER_DATA[user_id]["statistics"]["металл"] += 1
+def update_statistics(user_id: int, resource: str) -> bool:
+    valid_resources = ["пластик", "стекло", "металл", "бумага", "батарейки"]
+    resource = resource.lower()
+
+    # Проверяем, что ресурс допустим и обновляем статистику
+    if resource in valid_resources:
+        USER_DATA[user_id]["statistics"].setdefault(resource, 0)
+        USER_DATA[user_id]["statistics"][resource] += 1
         return True
     return False
+
+
+def get_user_statistics(user_id: int) -> str:
+    stats = USER_DATA.get(user_id, {}).get("statistics", {})
+    if not stats:
+        return "Статистика пока пуста."
+
+    return "\n".join(f"✅ {key.capitalize()}: {value}" for key, value in stats.items())
 
 
 # ==========================
