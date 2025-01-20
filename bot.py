@@ -176,9 +176,8 @@ async def handle_messages(message: Message, state: FSMContext):
         stats = USER_DATA[user_id]["statistics"]
         stats_message = "\n".join(f"✅ {key}: {value}" for key, value in stats.items())
         await message.answer(f"✅ Статистика обновлена:\n{stats_message}")
-        return
 
-    # В противном случае, отправляем запрос в GigaChat
+    # И отправляем запрос в GigaChat
     try:
         response = query_gigachat(text)
         await message.answer(response)
