@@ -24,6 +24,7 @@ dp.update.middleware(UserDBMiddleware(db_file="users.csv"))
 dp.update.middleware(LoggingMiddleware(log_file="logs.csv"))
 
 # Локальное временное хранилище данных
+global USER_DATA
 USER_DATA = {}
 
 
@@ -31,6 +32,7 @@ USER_DATA = {}
 class ReminderStates(StatesGroup):
     waiting_for_name = State()
     waiting_for_time = State()
+    waiting_for_feedback = State()
 
 
 # ==========================
@@ -42,6 +44,7 @@ async def start_command(message: Message, state: FSMContext):
     Приветственное сообщение при регистрации.
     """
     await state.clear()
+    global USER_DATA
     user_id = message.from_user.id
 
     # Уже зарегистрированные пользователи
@@ -74,6 +77,16 @@ async def process_name(message: Message, state: FSMContext):
         f"Приятно познакомиться, {user_name}! Теперь Вы можете управлять настройками через меню:",
         reply_markup=get_main_menu(),
     )
+    await state.clear()
+
+
+@dp.message(ReminderStates.waiting_for_feedback)
+async def feedback_handler(message: Message, state: FSMContext):
+    user_id = message.from_user.id
+    review = message.text.lower().strip()
+    with open(f"reviews/{user_id}.txt", "a") as file:
+        file.write(review + "\n")
+    await message.answer("Спасибо за ваш отзыв!")
     await state.clear()
 
 
@@ -133,6 +146,11 @@ async def handle_messages(message: Message, state: FSMContext):
     elif text == "⏰ настроить напоминания":
         await message.answer("Введите время для напоминаний в формате ЧЧ:ММ, например, 08:30.")
         await state.set_state(ReminderStates.waiting_for_time)
+        return
+
+    elif text == "☎️ обратная связь":
+        await message.answer("Спасибо, что пользуетесь нашим сервисом! Напишите ваш отзыв:")
+        await state.set_state(ReminderStates.waiting_for_feedback)
         return
 
     elif text == "🚮 правила сортировки":
@@ -199,11 +217,11 @@ def get_main_menu():
             [KeyboardButton(text="📊 Посмотреть статистику")],
             [KeyboardButton(text="⏰ Настроить напоминания")],
             [KeyboardButton(text="🚮 Правила сортировки")],
+            [KeyboardButton(text="☎️ Обратная связь")],
         ],
         resize_keyboard=True,
         one_time_keyboard=True,
     )
-
 
 def validate_time_format(time_str):
     """
